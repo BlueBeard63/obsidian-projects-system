@@ -1,6 +1,6 @@
 {
   "name": "obsidian-projects-system",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Obsidian plugin: grid, table and activity views over your existing project notes, with automatic activity history and portfolio export.",
   "type": "module",
