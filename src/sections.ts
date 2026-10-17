@@ -11,7 +11,7 @@ export interface Section {
 export function splitFrontmatter(text: string): { frontmatter: string; body: string } {
   const m = /^---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/.exec(text);
   if (!m) return { frontmatter: "", body: text };
-  return { frontmatter: m[1]!, body: text.slice(m[0].length) };
+  return { frontmatter: m[1], body: text.slice(m[0].length) };
 }
 
 /** Level-2 sections, skipping headings inside code fences. A leading # title is dropped. */
@@ -29,7 +29,7 @@ export function splitSections(body: string): Section[] {
   for (const line of lines) {
     const f = /^\s*(`{3,}|~{3,})/.exec(line);
     if (fence) {
-      if (f && f[1]![0] === fence[0] && f[1]!.length >= fence.length) fence = null;
+      if (f && f[1][0] === fence[0] && f[1].length >= fence.length) fence = null;
       buf.push(line);
       continue;
     }
@@ -41,7 +41,7 @@ export function splitSections(body: string): Section[] {
     const h = /^##\s+(.+?)\s*#*\s*$/.exec(line);
     if (h) {
       flush();
-      current = { heading: h[1]!, body: "" };
+      current = { heading: h[1], body: "" };
     } else if (/^#\s+/.test(line) && !current.heading && !buf.some((l) => l.trim())) {
       continue; // a "# Title" at the top duplicates the note name
     }

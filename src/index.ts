@@ -60,7 +60,7 @@ export class ProjectIndex extends Events {
     const next = defs.map((def) => {
       const file = def.mainPath ? this.app.vault.getFileByPath(def.mainPath) : null;
       const fm = file ? this.app.metadataCache.getFileCache(file)?.frontmatter : undefined;
-      return readProject(def, fm as Record<string, unknown> | undefined, settings.fields);
+      return readProject(def, fm, settings.fields);
     });
 
     const prev = this.byId;

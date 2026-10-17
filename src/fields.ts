@@ -46,7 +46,7 @@ export function asText(v: unknown): string {
   if (v === null || v === undefined) return "";
   if (Array.isArray(v)) return v.map(asText).filter(Boolean).join(", ");
   if (v instanceof Date) return normaliseDate(v);
-  if (typeof v === "object") return "";
+  if (typeof v !== "string" && typeof v !== "number" && typeof v !== "boolean") return "";
   return stripWikilink(String(v)).trim();
 }
 

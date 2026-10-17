@@ -474,6 +474,10 @@
 
 /* ---------- modals ---------- */
 
+.ps-wide-input {
+  width: 100%;
+}
+
 .ps-wide-modal {
   width: min(90vw, 760px);
 }

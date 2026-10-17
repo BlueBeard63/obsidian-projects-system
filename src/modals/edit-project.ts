@@ -116,8 +116,8 @@ export class EditProjectModal extends Modal {
 /** A scalar as typed in YAML, keeping wikilinks ("[[Bosun]]") as written so they survive a save. */
 function asRaw(v: unknown): string {
   if (v === null || v === undefined) return "";
-  if (typeof v === "object" && !(v instanceof Date)) return "";
-  return v instanceof Date ? v.toISOString().slice(0, 10) : String(v);
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  return typeof v === "string" || typeof v === "number" || typeof v === "boolean" ? String(v) : "";
 }
 
 function asListText(v: unknown): string {

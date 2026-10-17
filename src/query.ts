@@ -77,7 +77,7 @@ export function parseQuery(source: string, now: Date = new Date()): ProjectQuery
     switch (key) {
       case "sort": {
         const m = /^(.*?)(?:\s+(asc|desc))?$/i.exec(value)!;
-        q.sort = m[1]!.trim().toLowerCase();
+        q.sort = m[1].trim().toLowerCase();
         q.descending = (m[2] ?? "").toLowerCase() === "desc";
         break;
       }

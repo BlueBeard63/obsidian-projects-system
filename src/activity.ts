@@ -38,7 +38,8 @@ export class ActivityTracker extends Events {
   }
 
   private get file(): string {
-    return normalizePath(`${this.plugin.manifest.dir ?? ".obsidian/plugins/projects-system"}/activity.json`);
+    const dir = this.plugin.manifest.dir ?? `${this.plugin.app.vault.configDir}/plugins/${this.plugin.manifest.id}`;
+    return normalizePath(`${dir}/activity.json`);
   }
 
   async load(): Promise<void> {

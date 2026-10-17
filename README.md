@@ -95,7 +95,7 @@ The commands **Edit current project** and **New note in current project** do the
 - **Open a project**
 - **New project:** asks for name, category, single note or folder, status and summary. It uses your frontmatter shape or a template note (setting). The template can use `{{name}}`, `{{date}}`, `{{status}}` and `{{summary}}`.
 - **Set status of current project:** type a new value to add a status.
-- **Copy activity summary** and **Insert activity summary at cursor:** markdown for a range, with links to the notes. Useful to paste into a review, or to hand to an LLM to write up.
+- **Copy activity summary** and **Insert activity summary:** markdown for a range, with links to the notes. Useful to paste into a review, or to hand to an LLM to write up.
 - **Export project to portfolio** (desktop): see below.
 - **Draft monthly portfolio post** (desktop): see below.
 
@@ -141,6 +141,7 @@ Everything is plain frontmatter, so Bases and Dataview can query the same notes 
 ```sh
 npm install
 npm test            # unit tests (Node 22+ runs the TypeScript directly)
+npm run lint        # the same ESLint rules Obsidian's review bot runs
 npm run build       # typecheck + bundle main.js
 npm run demo        # build and install into demo/, then open demo/ as a vault
 OBSIDIAN_VAULT="D:/path/to/vault" npm run dev   # watch and install into another vault

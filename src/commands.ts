@@ -68,7 +68,7 @@ export function registerCommands(plugin: ProjectsPlugin): void {
 
   plugin.addCommand({
     id: "insert-activity",
-    name: "Insert activity summary at cursor",
+    name: "Insert activity summary",
     editorCallback: (editor) =>
       new RangePicker(app, (r) => editor.replaceSelection(plugin.activityText(r) + "\n")).open(),
   });

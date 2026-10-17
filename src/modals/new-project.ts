@@ -24,7 +24,7 @@ export function fillTemplate(template: string, values: Record<string, string>): 
   return template.replace(/\{\{\s*(\w+)(?::[^}]*)?\s*\}\}/g, (m, key: string) => {
     const v = values[key.toLowerCase()];
     if (v === undefined) return m;
-    return /[:#\[\]{},&*!|>'"%@`]/.test(v) ? JSON.stringify(v) : v;
+    return /[:#[\]{},&*!|>'"%@`]/.test(v) ? JSON.stringify(v) : v;
   });
 }
 

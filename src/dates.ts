@@ -106,8 +106,8 @@ export function parseRange(spec: string, now: Date = new Date()): DateRange | nu
   }
   m = /^(\d{4}-\d{2}-\d{2})(?:\.\.|-to-)(\d{4}-\d{2}-\d{2})$/.exec(s);
   if (m) {
-    if (!parseIsoDate(m[1]!) || !parseIsoDate(m[2]!)) return null;
-    const [start, end] = m[1]! <= m[2]! ? [m[1]!, m[2]!] : [m[2]!, m[1]!];
+    if (!parseIsoDate(m[1]) || !parseIsoDate(m[2])) return null;
+    const [start, end] = m[1] <= m[2] ? [m[1], m[2]] : [m[2], m[1]];
     return { start, end, label: `${start} to ${end}` };
   }
   if (parseIsoDate(s)) return { start: s, end: s, label: s };
@@ -126,7 +126,7 @@ export function normaliseDate(v: unknown): string {
   if (v instanceof Date && !isNaN(v.getTime())) return v.toISOString().slice(0, 10);
   if (typeof v === "string") {
     const m = /^(\d{4}-\d{2}-\d{2})/.exec(v.trim());
-    if (m && parseIsoDate(m[1]!)) return m[1]!;
+    if (m && parseIsoDate(m[1])) return m[1];
   }
   return "";
 }
@@ -148,5 +148,5 @@ export function dayLabel(date: string): string {
   const d = parseIsoDate(date);
   if (!d) return date;
   const wd = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()];
-  return `${wd} ${d.getDate()} ${MONTHS[d.getMonth()]!.slice(0, 3)} ${d.getFullYear()}`;
+  return `${wd} ${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)} ${d.getFullYear()}`;
 }

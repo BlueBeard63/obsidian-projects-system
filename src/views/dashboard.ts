@@ -157,7 +157,7 @@ export class DashboardView extends ItemView {
       s.addEventListener("change", () => onChange(s.value));
     };
 
-    select("Quick filter", state.quick, Object.entries(QUICK) as [string, string][], (v) => this.set("quick", v as Quick));
+    select("Quick filter", state.quick, Object.entries<string>(QUICK), (v) => this.set("quick", v as Quick));
     select("Status", state.status, [["", "Any status"], ...index.statuses().map((s): [string, string] => [s, s]), ["(none)", "No status"]], (v) =>
       this.set("status", v),
     );
@@ -239,7 +239,7 @@ export class DashboardView extends ItemView {
       const head = el.createDiv({ cls: "ps-range-title" });
       head.createSpan({ text: range.label });
       head.createSpan({ cls: "ps-muted", text: ` ${range.start} to ${range.end}` });
-      const copy = head.createEl("button", { cls: "clickable-icon", attr: { "aria-label": "Copy as markdown" } });
+      const copy = head.createEl("button", { cls: "clickable-icon", attr: { "aria-label": "Copy as Markdown" } });
       setIcon(copy, "copy");
       copy.addEventListener("click", () => void plugin.copyActivity(range, (id) => ids.has(id)));
       // Deleted projects only show when nothing is filtered (they cannot match a filter).

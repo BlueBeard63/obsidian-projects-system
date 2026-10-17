@@ -169,7 +169,7 @@ export function summarise(
   for (const e of data.events) {
     if (!inRange(e.d, range) || !include(e.p)) continue;
     let day = days.get(e.d);
-    if (!day) days.set(e.d, (day = new Map()));
+    if (!day) days.set(e.d, (day = new Map<string, ProjectDay>()));
     let pd = day.get(e.p);
     if (!pd) {
       pd = { project: e.p, created: [], edited: [], editedCount: 0, renamed: [], deleted: [], status: [] };

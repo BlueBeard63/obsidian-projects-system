@@ -92,7 +92,7 @@ export class RangePicker extends SuggestModal<DateRange> {
 export class MonthPicker extends SuggestModal<string> {
   constructor(app: App, private readonly onPick: (month: string) => void) {
     super(app);
-    this.setPlaceholder("Month (YYYY-MM)");
+    this.setPlaceholder("Pick a month, or type one like 2026-09");
   }
 
   override getSuggestions(query: string): string[] {

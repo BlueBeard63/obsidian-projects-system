@@ -45,7 +45,7 @@ export function nextCase(existing: string[]): string {
   let max = 0;
   for (const c of existing) {
     const m = /^0x([0-9a-f]+)$/i.exec(c.trim().replace(/^["']|["']$/g, ""));
-    if (m) max = Math.max(max, parseInt(m[1]!, 16));
+    if (m) max = Math.max(max, parseInt(m[1], 16));
   }
   return "0x" + (max + 1).toString(16).toUpperCase().padStart(2, "0");
 }
@@ -75,7 +75,7 @@ export function rewriteLinks(text: string, resolves: (target: string) => boolean
     chunk.replace(/(!?)\[\[([^\]|]+?)(?:\|([^\]]*))?\]\]/g, (_m, bang: string, rawTarget: string, label?: string) => {
       const target = rawTarget.trim();
       if (bang) {
-        const file = target.split("#")[0]!.split("/").pop()!;
+        const file = target.split("#")[0].split("/").pop()!;
         if (MEDIA.test(file)) {
           if (!res.embeds.includes(target)) res.embeds.push(target);
           return label !== undefined ? `![[${file}|${label}]]` : `![[${file}]]`;
@@ -83,7 +83,7 @@ export function rewriteLinks(text: string, resolves: (target: string) => boolean
         res.droppedEmbeds.push(target);
         return "";
       }
-      const shown = (label ?? target.split("#")[0]!.split("/").pop()!).trim();
+      const shown = (label ?? target.split("#")[0].split("/").pop()!).trim();
       if (resolves(target)) return label !== undefined ? `[[${target}|${label}]]` : `[[${target}]]`;
       if (!res.unlinked.includes(target)) res.unlinked.push(target);
       return shown;
@@ -101,7 +101,7 @@ export function mapOutsideCode(text: string, fn: (s: string) => string): string 
     const m = /^\s*(`{3,}|~{3,})/.exec(line);
     if (fence) {
       out.push(line);
-      if (m && m[1]![0] === fence[0] && m[1]!.length >= fence.length && line.trim() === m[1]) fence = null;
+      if (m && m[1][0] === fence[0] && m[1].length >= fence.length && line.trim() === m[1]) fence = null;
       continue;
     }
     if (m) {

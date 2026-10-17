@@ -52,8 +52,8 @@ export default class ProjectsPlugin extends Plugin {
     });
   }
 
-  override async onunload(): Promise<void> {
-    await this.activity.flush();
+  override onunload(): void {
+    void this.activity.flush();
   }
 
   async loadSettings(): Promise<void> {

@@ -2,7 +2,6 @@
 // outside this vault with Node's fs. Every write is shown first; nothing is overwritten silently.
 
 import { Modal, Notice, Platform, Setting, normalizePath } from "obsidian";
-import type * as NodeFs from "node:fs";
 import { byProject } from "../activity-store";
 import { isoDate, parseRange } from "../dates";
 import { isFinished, type ProjectInfo } from "../fields";
@@ -12,12 +11,19 @@ import { confirmWrite, ReportModal } from "../modals/confirm";
 import { buildMonthlyPost, buildProjectNote, monthlyBody, portfolioFields, type MonthlyProject } from "./notes";
 import { nextCase, rewriteLinks, sanitizeTyping, slugify, stripComments } from "./sanitize";
 
-type Fs = typeof NodeFs.promises;
+/** The part of Node's fs/promises this file uses (loaded at runtime on desktop only). */
+interface Fs {
+  stat(path: string): Promise<unknown>;
+  readFile(path: string, encoding: "utf8"): Promise<string>;
+  readdir(path: string): Promise<string[]>;
+  mkdir(path: string, options: { recursive: boolean }): Promise<unknown>;
+  writeFile(path: string, data: string | Uint8Array, encoding?: "utf8"): Promise<void>;
+}
 
 function nodeFs(): Fs | null {
   if (!Platform.isDesktopApp) return null;
   const req = (window as unknown as { require?: (m: string) => unknown }).require;
-  return req ? (req("fs") as typeof NodeFs).promises : null;
+  return req ? (req("fs") as { promises: Fs }).promises : null;
 }
 
 async function exists(fs: Fs, path: string): Promise<boolean> {
@@ -41,7 +47,7 @@ async function readIfExists(fs: Fs, path: string): Promise<string | null> {
 async function portfolioRoot(plugin: ProjectsPlugin, fs: Fs): Promise<string | null> {
   const root = plugin.settings.portfolioPath.replace(/\\/g, "/").replace(/\/+$/, "");
   if (!root) {
-    new Notice("Set the portfolio content folder in the Projects System settings first.");
+    new Notice("Set the portfolio content folder in this plugin's settings first.");
     return null;
   }
   if (!(await exists(fs, `${root}/Projects`))) {
@@ -61,7 +67,7 @@ interface PortfolioIndex {
 
 function fmValue(fm: string, key: string): string {
   const m = new RegExp(`^${key}:[ \\t]*(.*)$`, "m").exec(fm);
-  return m ? m[1]!.trim().replace(/^["']|["']$/g, "") : "";
+  return m ? m[1].trim().replace(/^["']|["']$/g, "") : "";
 }
 
 /** Reads what the site's resolver knows (Portfolio/internal/site/build.go: resolve). */
@@ -95,7 +101,7 @@ async function indexPortfolio(fs: Fs, root: string): Promise<PortfolioIndex> {
 
 function resolver(idx: PortfolioIndex): (target: string) => boolean {
   return (target) => {
-    const t = target.split("#")[0]!.split("/").pop()!.replace(/\.md$/i, "").trim().toLowerCase();
+    const t = target.split("#")[0].split("/").pop()!.replace(/\.md$/i, "").trim().toLowerCase();
     return idx.names.has(t) || idx.names.has(slugify(t));
   };
 }
@@ -129,11 +135,11 @@ class ExportModal extends Modal {
       new Setting(contentEl)
         .setName(s.heading || "(text before the first heading)")
         .setDesc(`${words} words`)
-        .addToggle((t) => t.setValue(this.chosen[i]!).onChange((v) => (this.chosen[i] = v)));
+        .addToggle((t) => t.setValue(this.chosen[i]).onChange((v) => (this.chosen[i] = v)));
     });
     new Setting(contentEl)
       .setName("Add missing standard sections")
-      .setDesc("Stubs for Overview, The problem, What I built and Outcome when the note has no section with that name.")
+      .setDesc("Adds the sections the portfolio's writing guide expects when the note has none with that name.")
       .addToggle((t) => t.setValue(this.stubs).onChange((v) => (this.stubs = v)));
     new Setting(contentEl)
       .addButton((b) => b.setButtonText("Cancel").onClick(() => this.close()))
@@ -219,7 +225,7 @@ export async function exportProject(plugin: ProjectsPlugin, p: ProjectInfo): Pro
       // Copy embedded images and videos into Assets/ (flat, by file name, as the site expects).
       const assets = `${root}/Assets`;
       for (const embed of rewritten.flatMap((s) => s.embeds)) {
-        const src = plugin.app.metadataCache.getFirstLinkpathDest(embed.split("|")[0]!.split("#")[0]!, p.mainPath!);
+        const src = plugin.app.metadataCache.getFirstLinkpathDest(embed.split("|")[0].split("#")[0], p.mainPath!);
         if (!src) {
           report.push(`Missing image ${embed}: not found in this vault, the site build will warn`);
           continue;
@@ -267,7 +273,7 @@ export async function draftMonthlyPost(plugin: ProjectsPlugin, month: string): P
   const projects: MonthlyProject[] = [...per.entries()]
     .map(([id, agg]) => {
       const p = plugin.index.get(id)!;
-      const slug = typeof p.fm["portfolio"] === "string" ? (p.fm["portfolio"] as string) : "";
+      const slug = typeof p.fm["portfolio"] === "string" ? (p.fm["portfolio"]) : "";
       return {
         name: p.name,
         slug,

@@ -40,7 +40,7 @@ export function portfolioFields(
 ): PortfolioProjectFields {
   const status = p.status.toLowerCase();
   const mapped = Object.entries(opts.statusMap).find(([k]) => k.toLowerCase() === status)?.[1] ?? p.status;
-  const live = typeof p.fm["live"] === "string" ? (p.fm["live"] as string) : "";
+  const live = typeof p.fm["live"] === "string" ? (p.fm["live"]) : "";
   return {
     title: sanitizeTyping(p.name).text,
     slug: slugify(p.name),

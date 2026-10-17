@@ -15,7 +15,7 @@ export function statusColour(plugin: ProjectsPlugin, status: string): string {
   if (!status) return "base";
   if (isFinished(status, plugin.settings.finishedStatuses)) return "green";
   const rank = statusRank(status, plugin.index.statuses());
-  return PALETTE[rank % PALETTE.length]!;
+  return PALETTE[rank % PALETTE.length];
 }
 
 export async function openProject(app: App, p: ProjectInfo, evt?: MouseEvent | KeyboardEvent): Promise<void> {
