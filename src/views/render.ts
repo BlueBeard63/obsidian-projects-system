@@ -85,7 +85,7 @@ export function renderProjects(el: HTMLElement, plugin: ProjectsPlugin, list: Pr
     }
     if (opts.view === "table") renderTable(wrap, plugin, section.items, opts);
     else if (opts.view === "list") renderList(wrap, plugin, section.items, opts);
-    else renderGrid(wrap, plugin, section.items, opts);
+    else renderGrid(wrap, plugin, section.items);
   }
 }
 
@@ -112,66 +112,40 @@ function clickable(el: HTMLElement, plugin: ProjectsPlugin, p: ProjectInfo): voi
   });
 }
 
-function renderGrid(el: HTMLElement, plugin: ProjectsPlugin, list: ProjectInfo[], opts: RenderOptions): void {
+function renderGrid(el: HTMLElement, plugin: ProjectsPlugin, list: ProjectInfo[]): void {
   const grid = el.createDiv({ cls: "ps-grid" });
-  for (const p of list) renderCard(grid, plugin, p, { editable: opts.editable !== false });
-}
-
-export interface CardOptions {
-  editable?: boolean;
-  /** The status pill (default true). The accent stripe still shows the status colour. */
-  status?: boolean;
-  /** Hover buttons: new note, edit, more (default true). */
-  actions?: boolean;
-  /** Extra frontmatter keys to offer in the edit dialog (Bases: the visible properties). */
-  editKeys?: string[];
-  summary?: boolean;
-  stack?: boolean;
-  /** The "worked on ..." footer line and stale badge. */
-  activity?: boolean;
-  /** Extra content between the chips and the footer (Bases: the visible properties). */
-  extra?: (el: HTMLElement) => void;
-}
-
-/** One project card. Used by the grid, the dashboard and the Bases "Project cards" view. */
-export function renderCard(grid: HTMLElement, plugin: ProjectsPlugin, p: ProjectInfo, opts: CardOptions = {}): HTMLElement {
   const today = isoDate(new Date());
-  const card = grid.createDiv({ cls: "ps-card" });
-  card.style.setProperty("--ps-accent", `var(--color-${statusColour(plugin, p.status)}, var(--text-faint))`);
-  clickable(card, plugin, p);
-  if (p.group.length || opts.status !== false) {
+  for (const p of list) {
+    const card = grid.createDiv({ cls: "ps-card" });
+    card.style.setProperty("--ps-accent", `var(--color-${statusColour(plugin, p.status)}, var(--text-faint))`);
+    clickable(card, plugin, p);
     const top = card.createDiv({ cls: "ps-card-top" });
     if (p.group.length) top.createSpan({ cls: "ps-group", text: p.group.join(" / ") });
-    if (opts.status !== false) statusPill(top, plugin, p, opts.editable !== false);
-  }
-  if (opts.actions !== false) cardActions(card, plugin, p, opts.editKeys ?? []);
-  const title = card.createDiv({ cls: "ps-card-title" });
-  setIcon(title.createSpan({ cls: "ps-kind" }), p.kind === "folder" ? "folder" : "file-text");
-  title.createSpan({ text: p.name });
-  if (opts.summary !== false && p.summary) card.createDiv({ cls: "ps-summary", text: p.summary });
-  if (opts.stack !== false && p.stack.length) {
-    const chips = card.createDiv({ cls: "ps-chips" });
-    for (const s of p.stack) chips.createSpan({ cls: "ps-chip", text: s });
-  }
-  opts.extra?.(card);
-  const foot = card.createDiv({ cls: "ps-card-foot" });
-  if (opts.activity !== false) {
+    cardActions(card, plugin, p);
+    const title = card.createDiv({ cls: "ps-card-title" });
+    setIcon(title.createSpan({ cls: "ps-kind" }), p.kind === "folder" ? "folder" : "file-text");
+    title.createSpan({ text: p.name });
+    if (p.summary) card.createDiv({ cls: "ps-summary", text: p.summary });
+    if (p.stack.length) {
+      const chips = card.createDiv({ cls: "ps-chips" });
+      for (const s of p.stack) chips.createSpan({ cls: "ps-chip", text: s });
+    }
+    const foot = card.createDiv({ cls: "ps-card-foot" });
     const last = lastWorked(plugin, p);
     const when = foot.createSpan({ cls: "ps-when" });
     setIcon(when.createSpan(), "history");
     when.createSpan({ text: last ? `worked on ${relativeDay(last, today)}` : p.updated ? `updated ${relativeDay(p.updated, today)}` : "no activity yet" });
     if (isStale(plugin, p, today)) foot.createSpan({ cls: "ps-stale", text: "stale" });
+    if (p.repo) {
+      const link = foot.createEl("a", { cls: "ps-repo", href: p.repo, attr: { "aria-label": p.repo, target: "_blank" } });
+      setIcon(link, "github");
+      link.addEventListener("click", (evt) => evt.stopPropagation());
+    }
   }
-  if (p.repo) {
-    const link = foot.createEl("a", { cls: "ps-repo", href: p.repo, attr: { "aria-label": p.repo, target: "_blank" } });
-    setIcon(link, "github");
-    link.addEventListener("click", (evt) => evt.stopPropagation());
-  }
-  return card;
 }
 
 /** Small buttons shown on hover (always on touch screens): new note, edit, more. */
-function cardActions(card: HTMLElement, plugin: ProjectsPlugin, p: ProjectInfo, editKeys: string[]): void {
+function cardActions(card: HTMLElement, plugin: ProjectsPlugin, p: ProjectInfo): void {
   const bar = card.createDiv({ cls: "ps-card-actions" });
   const button = (icon: string, label: string, run: (evt: MouseEvent) => void): void => {
     const b = bar.createEl("button", { cls: "clickable-icon", attr: { "aria-label": label } });
@@ -184,7 +158,7 @@ function cardActions(card: HTMLElement, plugin: ProjectsPlugin, p: ProjectInfo, 
     b.addEventListener("keydown", (e) => e.stopPropagation());
   };
   button("file-plus", "New note in project", () => plugin.newProjectNote(p));
-  button("pencil", "Edit project", () => plugin.editProject(p, editKeys));
+  button("pencil", "Edit project", () => plugin.editProject(p));
   button("more-horizontal", "More", (e) => plugin.projectMenu(p).showAtMouseEvent(e));
 }
 
@@ -293,7 +267,6 @@ export function renderActivity(el: HTMLElement, plugin: ProjectsPlugin, days: Da
           evt.preventDefault();
           void openProject(plugin.app, p, evt);
         });
-        statusPill(name, plugin, p, false);
       } else {
         name.createSpan({ cls: "ps-gone", text: pd.project.split("/").pop()!.replace(/\.md$/i, "") });
       }

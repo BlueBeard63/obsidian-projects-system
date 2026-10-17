@@ -13,7 +13,6 @@ import { DEFAULT_SETTINGS, ProjectsSettingTab, type ProjectsSettings } from "./s
 import { activityMarkdown } from "./summary";
 import { DASHBOARD_VIEW, DashboardView } from "./views/dashboard";
 import { openProject } from "./views/render";
-import { registerBasesViews } from "./views/bases";
 
 export default class ProjectsPlugin extends Plugin {
   override settings: ProjectsSettings = { ...DEFAULT_SETTINGS };
@@ -28,8 +27,6 @@ export default class ProjectsPlugin extends Plugin {
 
     this.registerView(DASHBOARD_VIEW, (leaf) => new DashboardView(leaf, this));
     registerBlocks(this);
-    // "Project cards" and "Project activity" in the Bases view picker (Obsidian 1.10+, Bases enabled).
-    registerBasesViews(this);
     registerCommands(this);
     this.addSettingTab(new ProjectsSettingTab(this));
     this.addRibbonIcon("folder-kanban", "Open projects dashboard", () => void this.openDashboard());
@@ -90,8 +87,8 @@ export default class ProjectsPlugin extends Plugin {
     new Notice(`Copied activity for ${range.label.toLowerCase()}.`);
   }
 
-  editProject(p: ProjectInfo, extraKeys: string[] = []): void {
-    new EditProjectModal(this, p, extraKeys).open();
+  editProject(p: ProjectInfo): void {
+    new EditProjectModal(this, p).open();
   }
 
   newProjectNote(p: ProjectInfo): void {

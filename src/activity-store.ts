@@ -86,6 +86,25 @@ export function renamePath(data: ActivityData, oldPath: string, newPath: string)
 }
 
 /**
+ * Moves events onto the project their file belongs to now. Needed when a project's id changes
+ * without a rename of that id: a single note turned into a folder project (X.md -> X/X.md) has
+ * the folder as its id from then on. `resolve` maps a path to a current project id; `isProject`
+ * says whether an id is still a project. Returns true when anything moved.
+ */
+export function reattach(data: ActivityData, isProject: (id: string) => boolean, resolve: (path: string) => string | undefined): boolean {
+  let changed = false;
+  for (const e of data.events) {
+    if (isProject(e.p)) continue;
+    const id = (e.f && resolve(e.f)) || resolve(e.p);
+    if (id && id !== e.p) {
+      e.p = id;
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+/**
  * Folds per-file edit events older than `keepDays` into one edit per project per day (with a
  * count), so the file stays small after years of use. Creates, deletes and status changes stay.
  */

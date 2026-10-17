@@ -1,9 +1,5 @@
 # Weekly review
 
-## The Activity view of Projects.base, embedded
-
-![[Projects.base#Activity]]
-
 The plugin's code blocks, live in any note. Edit a project note and come back: this page updates.
 
 ## What I worked on this week

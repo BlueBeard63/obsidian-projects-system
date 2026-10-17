@@ -4,5 +4,4 @@ Open this folder as a vault in Obsidian (after `npm run demo` from the repo root
 
 - `Personal Projects/` uses the layout the plugin expects: category folders, single-note projects and folder projects with a folder note. `Nerve Media` has no folder note on purpose.
 - `Reviews/Weekly review.md` shows the `projects` and `project-activity` code blocks.
-- `Projects.base` uses the plugin's Bases views: Project cards (opens first), Project activity, then a plain table.
 - `portfolio/content/` is a stand-in for the portfolio. Point "Portfolio content folder" in the plugin settings at its absolute path to try "Export project to portfolio" on BAnim or Code References.

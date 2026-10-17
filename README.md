@@ -78,12 +78,11 @@ view: list                      compact: one line per project per day
 
 ## Quick actions and editing
 
-Hover a card (in the dashboard or a base) for three buttons:
+Hover a card in the dashboard for three buttons:
 
 - **New note:** asks for a name and an optional subfolder (e.g. `Research`), creates the note inside the project and opens it. For a single-note project this first turns it into a folder project: `Category/X.md` moves to `Category/X/X.md`, and Obsidian updates the links.
 - **Edit:** opens one dialog for the whole card.
   - Fields: name, status, summary, languages, repository, area, category, created and updated dates.
-  - In a base, any other properties the base shows are included too.
   - Only the fields you change are written. Renaming renames the note, or the folder and its folder note, and links update.
   - Ctrl/Cmd+Enter saves.
 - **More:** the same menu as right-clicking: open, edit, new note, set status, copy activity, export.
@@ -133,25 +132,9 @@ Set **Portfolio content folder** to the portfolio's `content/` folder: the one w
 
 Committing and building the portfolio stay manual.
 
-## Bases views (Obsidian 1.10+)
+## Bases and Dataview
 
-With the Bases core plugin on, the view picker of any `.base` file has two extra types:
-
-- **Project cards:** the dashboard's cards, but Bases does the filtering, sorting and grouping. The status badge is off by default; the coloured stripe at the top still shows status. View options:
-  - **One card per project:** a folder project's research notes fold into one card.
-  - **Only projects:** hides notes that aren't part of a project.
-  - **Card width.**
-  - **Show status badge / quick actions / summary / languages / last worked on.**
-  - Properties you tick in the base's Properties menu (area, category, framework, ...) appear on each card.
-- **Project activity:** the activity timeline for the projects the base's filters let through. Options: **Range** (this week, last month, ... or a custom range) and **Compact**.
-
-**Which view opens first:** Bases opens the first view listed under `views:` in the `.base` file. To change the default, move that view to the top, either by dragging views in the view menu or by editing the file.
-
-**Create projects base** writes `<projects folder>/Projects.base` with a filter on your projects folder and three views (Project cards, Project activity, Table). It asks which one to put first. If the file already exists, it shows a diff before replacing it.
-
-To embed one view of a base in a note, use `![[Projects.base#Activity]]`.
-
-Dataview also works, since everything is plain frontmatter.
+Everything is plain frontmatter, so Bases and Dataview can query the same notes if you want them to.
 
 ## Development
 
@@ -163,4 +146,4 @@ npm run demo        # build and install into demo/, then open demo/ as a vault
 OBSIDIAN_VAULT="D:/path/to/vault" npm run dev   # watch and install into another vault
 ```
 
-The `demo/` vault has sample projects in your frontmatter shape, a seeded activity history, `Projects.base` using the custom views, `Reviews/Weekly review.md` showing the code blocks, and a stand-in `portfolio/content/` to export into.
+The `demo/` vault has sample projects in your frontmatter shape, a seeded activity history, `Reviews/Weekly review.md` showing the code blocks, and a stand-in `portfolio/content/` to export into.

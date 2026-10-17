@@ -3,9 +3,7 @@ import { isFinished, type ProjectInfo } from "./fields";
 import type ProjectsPlugin from "./main";
 import { draftMonthlyPost, exportProject } from "./export/portfolio";
 import { NewProjectModal } from "./modals/new-project";
-import { BaseViewPicker, MonthPicker, ProjectPicker, RangePicker, StatusPicker } from "./modals/pickers";
-import { confirmWrite } from "./modals/confirm";
-import { defaultBasePath, projectsBaseFile } from "./views/bases";
+import { MonthPicker, ProjectPicker, RangePicker, StatusPicker } from "./modals/pickers";
 
 export function registerCommands(plugin: ProjectsPlugin): void {
   const { app } = plugin;
@@ -73,27 +71,6 @@ export function registerCommands(plugin: ProjectsPlugin): void {
     name: "Insert activity summary at cursor",
     editorCallback: (editor) =>
       new RangePicker(app, (r) => editor.replaceSelection(plugin.activityText(r) + "\n")).open(),
-  });
-
-  plugin.addCommand({
-    id: "create-projects-base",
-    name: "Create projects base",
-    callback: () =>
-      new BaseViewPicker(app, async (first) => {
-        const { settings } = plugin;
-        const path = defaultBasePath(settings.root);
-        const text = projectsBaseFile(settings.root, first, settings.fields.status);
-        const existing = app.vault.getFileByPath(path);
-        if (existing) {
-          const before = await app.vault.read(existing);
-          const ok = await confirmWrite(app, `Replace ${path}?`, "This base already exists. Replacing it changes:", before, text, "Replace");
-          if (!ok) return;
-          await app.vault.modify(existing, text);
-        } else {
-          await app.vault.create(path, text);
-        }
-        await app.workspace.getLeaf(false).openFile(app.vault.getFileByPath(path)!);
-      }).open(),
   });
 
   if (Platform.isDesktopApp) {

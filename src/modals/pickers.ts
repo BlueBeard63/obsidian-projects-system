@@ -114,30 +114,3 @@ export class MonthPicker extends SuggestModal<string> {
     this.onPick(m);
   }
 }
-
-const BASE_VIEWS: { id: "cards" | "activity" | "table"; label: string; desc: string }[] = [
-  { id: "cards", label: "Project cards", desc: "Opens on the card grid" },
-  { id: "activity", label: "Project activity", desc: "Opens on what you worked on this week" },
-  { id: "table", label: "Table", desc: "Opens on Bases' own table" },
-];
-
-/** Which view a new projects base opens on (Bases opens the first view in the file). */
-export class BaseViewPicker extends SuggestModal<(typeof BASE_VIEWS)[number]> {
-  constructor(app: App, private readonly onPick: (first: "cards" | "activity" | "table") => void) {
-    super(app);
-    this.setPlaceholder("Which view should the base open on?");
-  }
-
-  override getSuggestions(query: string): (typeof BASE_VIEWS)[number][] {
-    return BASE_VIEWS.filter((v) => v.label.toLowerCase().includes(query.trim().toLowerCase()));
-  }
-
-  override renderSuggestion(v: (typeof BASE_VIEWS)[number], el: HTMLElement): void {
-    el.createDiv({ text: v.label });
-    el.createDiv({ cls: "ps-muted", text: v.desc });
-  }
-
-  override onChooseSuggestion(v: (typeof BASE_VIEWS)[number]): void {
-    this.onPick(v.id);
-  }
-}

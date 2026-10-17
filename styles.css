@@ -333,28 +333,6 @@ button.ps-status:hover {
   color: var(--text-accent);
 }
 
-/* properties picked in a base's Properties menu (Project cards view) */
-.ps-props {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 2px var(--size-4-2);
-  font-size: var(--font-ui-smaller);
-}
-
-.ps-prop-label {
-  color: var(--text-faint);
-}
-
-.ps-prop-value {
-  color: var(--text-muted);
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.ps-bases {
-  padding: var(--size-4-2) var(--size-4-4);
-}
-
 /* ---------- table ---------- */
 
 .ps-table-wrap {

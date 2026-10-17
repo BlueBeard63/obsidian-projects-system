@@ -7,6 +7,7 @@ import {
   emptyActivity,
   lastActivity,
   parseActivity,
+  reattach,
   renamePath,
   summarise,
   touchedCount,
@@ -42,6 +43,19 @@ test("rename rewrites project and file paths", () => {
   addEvent(d, { d: "2026-10-17", p: P, k: "edit", f: R });
   renamePath(d, P, "Personal Projects/Platform/Helpdesk");
   assert.deepEqual(d.events[0], { d: "2026-10-17", p: "Personal Projects/Platform/Helpdesk", k: "edit", f: "Personal Projects/Platform/Helpdesk/Research/Competitors.md" });
+});
+
+test("history follows a note that became a folder project", () => {
+  const d = emptyActivity();
+  const note = "Personal Projects/Games/Roguelike Idea.md";
+  const folder = "Personal Projects/Games/Roguelike Idea";
+  addEvent(d, { d: "2026-10-15", p: note, k: "create", f: note });
+  addEvent(d, { d: "2026-10-16", p: note, k: "status", from: "", to: "idea" });
+  renamePath(d, note, `${folder}/Roguelike Idea.md`); // what the vault rename event does
+  const resolve = (path: string): string | undefined => (path.startsWith(folder + "/") ? folder : undefined);
+  assert.ok(reattach(d, (id) => id === folder, resolve));
+  assert.deepEqual(d.events.map((e) => e.p), [folder, folder]);
+  assert.ok(!reattach(d, (id) => id === folder, resolve));
 });
 
 test("compaction folds old per-file edits into a count", () => {

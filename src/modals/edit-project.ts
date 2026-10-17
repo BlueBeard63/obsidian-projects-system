@@ -15,7 +15,7 @@ interface Field {
 
 /**
  * Edit a project's card in one place: name (renames the note/folder), status, summary, languages,
- * repository, area, category, dates, plus any extra properties (e.g. the ones a base shows).
+ * repository, area, category and dates.
  * Only fields you change are written.
  */
 export class EditProjectModal extends Modal {
@@ -26,7 +26,6 @@ export class EditProjectModal extends Modal {
   constructor(
     private readonly plugin: ProjectsPlugin,
     private readonly project: ProjectInfo,
-    extraKeys: string[] = [],
   ) {
     super(plugin.app);
     this.name = project.name;
@@ -43,13 +42,6 @@ export class EditProjectModal extends Modal {
       { key: f.created, label: "Created", kind: "date", initial: project.created },
       { key: f.updated, label: "Updated", kind: "date", initial: project.updated },
     ];
-    const known = new Set(this.fields.map((x) => x.key.toLowerCase()));
-    for (const key of extraKeys) {
-      if (known.has(key.toLowerCase()) || key === "tags") continue;
-      known.add(key.toLowerCase());
-      const list = Array.isArray(fm[key]);
-      this.fields.push({ key, label: key, kind: list ? "list" : "text", initial: list ? asListText(fm[key]) : asRaw(fm[key]), suggest: plugin.index.valuesOf(key) });
-    }
     for (const field of this.fields) this.values.set(field.key, field.initial);
   }
 

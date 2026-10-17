@@ -5,6 +5,7 @@ import {
   emptyActivity,
   lastActivity,
   parseActivity,
+  reattach,
   renamePath,
   summarise,
   type ActivityData,
@@ -69,14 +70,30 @@ export class ActivityTracker extends Events {
     this.plugin.registerEvent(vault.on("modify", (f) => this.onFile(f, "edit")));
     this.plugin.registerEvent(vault.on("delete", (f) => this.onFile(f, "delete")));
     this.plugin.registerEvent(vault.on("rename", (f, oldPath) => this.onRename(f, oldPath)));
-    this.plugin.registerEvent(this.plugin.index.on("changed", () => this.retryPending()));
+    this.plugin.registerEvent(
+      this.plugin.index.on("changed", () => {
+        this.reattach();
+        this.retryPending();
+      }),
+    );
     this.plugin.registerEvent(
       this.plugin.index.on("status", (...args: unknown[]) => {
         const [p, from, to] = args as [ProjectInfo, string, string];
         this.record({ d: today(), p: p.id, k: "status", from, to });
       }),
     );
+    this.reattach();
     if (!this.data.backfilled) void this.backfill(false);
+  }
+
+  /** History of a project whose id changed (note turned into a folder) follows it. */
+  private reattach(): void {
+    const index = this.plugin.index;
+    const moved = reattach(this.data, (id) => !!index.get(id), (path) => index.projectFor(path)?.id);
+    if (!moved) return;
+    this.last = lastActivity(this.data);
+    this.saveSoon();
+    this.changedSoon();
   }
 
   /** Marks a path as written by the plugin for the next couple of seconds. */
