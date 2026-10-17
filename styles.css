@@ -1,0 +1,550 @@
+/* Projects System. Only Obsidian theme variables, so light and dark themes just work. */
+
+.ps-dashboard {
+  padding: var(--size-4-4) var(--size-4-6);
+}
+
+/* ---------- toolbar ---------- */
+
+.ps-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-3);
+  margin-bottom: var(--size-4-4);
+}
+
+.ps-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  flex-wrap: wrap;
+}
+
+.ps-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+}
+
+.ps-tab .svg-icon {
+  width: var(--icon-s);
+  height: var(--icon-s);
+}
+
+.ps-tab.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.ps-total {
+  margin-left: auto;
+  color: var(--text-faint);
+  font-size: var(--font-ui-small);
+}
+
+.ps-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-2);
+  align-items: center;
+}
+
+.ps-search {
+  flex: 1 1 14rem;
+  min-width: 10rem;
+}
+
+.ps-month {
+  width: auto;
+}
+
+/* ---------- shared ---------- */
+
+.ps-muted {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.ps-empty {
+  padding: var(--size-4-8) var(--size-4-4);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.ps-error {
+  margin-top: var(--size-4-2);
+  color: var(--text-error);
+  font-size: var(--font-ui-small);
+}
+
+.ps-error .svg-icon {
+  width: var(--icon-xs);
+  height: var(--icon-xs);
+  vertical-align: middle;
+}
+
+.ps-gone {
+  color: var(--text-faint);
+  text-decoration: line-through;
+}
+
+.ps-section + .ps-section {
+  margin-top: var(--size-4-6);
+}
+
+.ps-section-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--size-4-2);
+  margin-bottom: var(--size-4-2);
+  font-weight: var(--font-semibold);
+  color: var(--text-normal);
+  text-transform: capitalize;
+}
+
+.ps-count {
+  color: var(--text-faint);
+  font-weight: normal;
+  font-size: var(--font-ui-small);
+}
+
+/* status pill: --ps-c is set per colour below */
+.ps-status {
+  --ps-c: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  height: auto;
+  padding: 1px 8px;
+  border-radius: var(--radius-l);
+  border: 1px solid color-mix(in srgb, var(--ps-c) 45%, transparent);
+  background: color-mix(in srgb, var(--ps-c) 14%, transparent);
+  color: var(--text-normal);
+  font-size: var(--font-ui-smaller);
+  line-height: 1.6;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+button.ps-status {
+  cursor: pointer;
+}
+
+button.ps-status:hover {
+  background: color-mix(in srgb, var(--ps-c) 26%, transparent);
+}
+
+.ps-status-empty {
+  border-style: dashed;
+  color: var(--text-faint);
+}
+
+.ps-c-red { --ps-c: var(--color-red); }
+.ps-c-orange { --ps-c: var(--color-orange); }
+.ps-c-yellow { --ps-c: var(--color-yellow); }
+.ps-c-green { --ps-c: var(--color-green); }
+.ps-c-cyan { --ps-c: var(--color-cyan); }
+.ps-c-blue { --ps-c: var(--color-blue); }
+.ps-c-purple { --ps-c: var(--color-purple); }
+.ps-c-pink { --ps-c: var(--color-pink); }
+.ps-c-base { --ps-c: var(--text-faint); }
+
+.ps-stale {
+  margin-left: var(--size-4-2);
+  padding: 0 6px;
+  border-radius: var(--radius-s);
+  background: color-mix(in srgb, var(--color-orange) 15%, transparent);
+  color: var(--color-orange);
+  font-size: var(--font-ui-smaller);
+}
+
+/* ---------- grid ---------- */
+
+.ps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--size-4-3);
+}
+
+.ps-card {
+  --ps-accent: var(--text-faint);
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+  padding: var(--size-4-3) var(--size-4-4);
+  border: 1px solid var(--background-modifier-border);
+  border-top: 3px solid var(--ps-accent);
+  border-radius: var(--radius-m);
+  background: var(--background-primary);
+  min-width: 0;
+}
+
+.ps-clickable {
+  cursor: pointer;
+}
+
+.ps-card.ps-clickable:hover,
+.ps-card.ps-clickable:focus-visible {
+  border-color: var(--background-modifier-border-hover);
+  border-top-color: var(--ps-accent);
+  box-shadow: var(--shadow-s);
+}
+
+.ps-card {
+  position: relative;
+}
+
+/* new note / edit / more: shown on hover or keyboard focus, always on touch screens */
+.ps-card-actions {
+  position: absolute;
+  top: var(--size-4-1);
+  right: var(--size-4-1);
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius-s);
+  background: var(--background-primary);
+  box-shadow: var(--shadow-s);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.ps-card:hover .ps-card-actions,
+.ps-card:focus-within .ps-card-actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .ps-card-actions {
+    opacity: 1;
+    position: static;
+    align-self: flex-end;
+    box-shadow: none;
+  }
+}
+
+.ps-card-actions .clickable-icon {
+  padding: var(--size-2-2);
+}
+
+.ps-card-actions .svg-icon {
+  width: var(--icon-s);
+  height: var(--icon-s);
+}
+
+.ps-edit-modal .ps-edit-wide textarea {
+  width: 100%;
+  min-width: 16rem;
+}
+
+.ps-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-2);
+}
+
+.ps-group {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ps-card-top .ps-status {
+  margin-left: auto;
+}
+
+.ps-card-title {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  font-weight: var(--font-semibold);
+  font-size: var(--font-ui-medium);
+  color: var(--text-normal);
+}
+
+.ps-kind {
+  display: inline-flex;
+  color: var(--text-faint);
+}
+
+.ps-kind .svg-icon {
+  width: var(--icon-s);
+  height: var(--icon-s);
+}
+
+.ps-summary {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ps-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-1);
+}
+
+.ps-chip {
+  padding: 0 6px;
+  border-radius: var(--radius-s);
+  background: var(--background-modifier-hover);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-family: var(--font-monospace);
+}
+
+.ps-card-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  margin-top: auto;
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+}
+
+.ps-when {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-1);
+}
+
+.ps-when .svg-icon,
+.ps-repo .svg-icon {
+  width: var(--icon-xs);
+  height: var(--icon-xs);
+}
+
+.ps-repo {
+  margin-left: auto;
+  color: var(--text-faint);
+  display: inline-flex;
+}
+
+.ps-repo:hover {
+  color: var(--text-accent);
+}
+
+/* properties picked in a base's Properties menu (Project cards view) */
+.ps-props {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px var(--size-4-2);
+  font-size: var(--font-ui-smaller);
+}
+
+.ps-prop-label {
+  color: var(--text-faint);
+}
+
+.ps-prop-value {
+  color: var(--text-muted);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ps-bases {
+  padding: var(--size-4-2) var(--size-4-4);
+}
+
+/* ---------- table ---------- */
+
+.ps-table-wrap {
+  overflow-x: auto;
+}
+
+.ps-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-ui-small);
+}
+
+.ps-table th,
+.ps-table td {
+  padding: var(--size-4-2) var(--size-4-3);
+  border-bottom: 1px solid var(--background-modifier-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.ps-table th {
+  color: var(--text-muted);
+  font-weight: var(--font-semibold);
+  white-space: nowrap;
+}
+
+.ps-table tr:hover td {
+  background: var(--background-modifier-hover);
+}
+
+.ps-table .ps-name {
+  min-width: 12rem;
+}
+
+.ps-table .ps-name .ps-summary {
+  -webkit-line-clamp: 1;
+}
+
+.ps-date {
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.ps-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.ps-sortable:hover {
+  color: var(--text-normal);
+}
+
+.ps-sorted-asc::after { content: " \2191"; }
+.ps-sorted-desc::after { content: " \2193"; }
+
+/* ---------- list ---------- */
+
+.ps-list li {
+  margin: var(--size-2-2) 0;
+}
+
+.ps-summary-inline {
+  color: var(--text-muted);
+}
+
+/* ---------- activity ---------- */
+
+.ps-range-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--size-4-2);
+  margin-bottom: var(--size-4-1);
+  font-weight: var(--font-semibold);
+}
+
+.ps-range-title .clickable-icon {
+  margin-left: auto;
+}
+
+.ps-activity-stats {
+  margin-bottom: var(--size-4-3);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.ps-timeline {
+  border-left: 2px solid var(--background-modifier-border);
+  padding-left: var(--size-4-4);
+}
+
+.ps-day {
+  position: relative;
+  margin-bottom: var(--size-4-4);
+}
+
+.ps-day::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--size-4-4) - 6px);
+  top: 0.45em;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--interactive-accent);
+}
+
+.ps-day-title {
+  font-weight: var(--font-semibold);
+  color: var(--text-normal);
+  margin-bottom: var(--size-4-1);
+}
+
+.ps-day-row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) 1fr;
+  gap: var(--size-4-3);
+  padding: var(--size-4-1) 0;
+  font-size: var(--font-ui-small);
+}
+
+.ps-day-project {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--size-4-2);
+}
+
+.ps-day-detail {
+  color: var(--text-muted);
+  min-width: 0;
+}
+
+.ps-files,
+.ps-change {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--size-2-2);
+}
+
+.ps-change {
+  color: var(--text-normal);
+}
+
+.ps-files .svg-icon,
+.ps-change .svg-icon {
+  width: var(--icon-xs);
+  height: var(--icon-xs);
+  vertical-align: middle;
+}
+
+.ps-files-icon {
+  display: inline-flex;
+  margin-right: var(--size-2-2);
+  color: var(--text-faint);
+}
+
+@media (max-width: 600px) {
+  .ps-dashboard {
+    padding: var(--size-4-3);
+  }
+  .ps-day-row {
+    grid-template-columns: 1fr;
+    gap: var(--size-2-2);
+  }
+}
+
+/* ---------- code blocks ---------- */
+
+.ps-block {
+  margin: var(--size-4-2) 0;
+}
+
+/* ---------- modals ---------- */
+
+.ps-wide-modal {
+  width: min(90vw, 760px);
+}
+
+.ps-diff {
+  max-height: 50vh;
+  overflow: auto;
+  padding: var(--size-4-2);
+  border-radius: var(--radius-s);
+  background: var(--background-secondary);
+  font-size: var(--font-ui-smaller);
+  white-space: pre-wrap;
+}
+
+.ps-diff-add { color: var(--color-green); }
+.ps-diff-del { color: var(--color-red); }
+.ps-diff-ctx { color: var(--text-muted); }
+.ps-diff-gap { color: var(--text-faint); }

@@ -1,0 +1,27 @@
+{
+  "name": "obsidian-projects-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Obsidian plugin: grid, table and activity views over your existing project notes, with automatic activity history and portfolio export.",
+  "type": "module",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && node esbuild.config.mjs production",
+    "demo": "node esbuild.config.mjs production demo",
+    "test": "node --test test/*.test.ts",
+    "version": "node version-bump.mjs && git add manifest.json versions.json"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.0",
+    "esbuild": "^0.28.2",
+    "obsidian": "^1.14.4",
+    "typescript": "~5.9.3"
+  },
+  "license": "MIT",
+  "author": "Jack Morrison",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BlueBeard63/obsidian-projects-system.git"
+  }
+}

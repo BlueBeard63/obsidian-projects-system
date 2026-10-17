@@ -1,0 +1,24 @@
+filters:
+  and:
+    - file.inFolder("Personal Projects")
+    - file.ext == "md"
+views:
+  - type: projects-cards
+    name: Projects
+    order:
+      - area
+      - category
+    sort:
+      - property: file.mtime
+        direction: DESC
+  - type: project-activity
+    name: Activity
+    range: this-week
+  - type: table
+    name: Table
+    order:
+      - file.name
+      - status
+      - area
+      - category
+      - updated
