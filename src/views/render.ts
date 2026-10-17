@@ -28,22 +28,19 @@ export async function openProject(app: App, p: ProjectInfo, evt?: MouseEvent | K
   await app.workspace.getLeaf(evt ? Keymap.isModEvent(evt) : false).openFile(file);
 }
 
-/** The status pill; click it for a menu of your statuses. `editable: false` renders plain text. */
-export function statusPill(el: HTMLElement, plugin: ProjectsPlugin, p: ProjectInfo, editable = true): HTMLElement {
-  const pill = el.createEl(editable ? "button" : "span", {
-    cls: `ps-status ps-c-${statusColour(plugin, p.status)}`,
-    text: p.status || "no status",
-  });
-  if (!p.status) pill.addClass("ps-status-empty");
-  if (!editable) return pill;
-  pill.setAttr("aria-label", "Change status");
-  pill.addEventListener("click", (e) => {
+/** The status as plain text; when editable, clicking it opens the status menu. */
+export function statusText(el: HTMLElement, plugin: ProjectsPlugin, p: ProjectInfo, editable = true): HTMLElement {
+  const span = el.createSpan({ cls: "ps-status-text", text: p.status });
+  if (!editable) return span;
+  span.addClass("ps-status-edit");
+  span.setAttr("aria-label", "Change status");
+  span.addEventListener("click", (e) => {
     const evt = e as MouseEvent;
     evt.preventDefault();
     evt.stopPropagation();
     statusMenu(plugin, p).showAtMouseEvent(evt);
   });
-  return pill;
+  return span;
 }
 
 export function statusMenu(plugin: ProjectsPlugin, p: ProjectInfo): Menu {
@@ -84,7 +81,7 @@ export function renderProjects(el: HTMLElement, plugin: ProjectsPlugin, list: Pr
       h.createSpan({ cls: "ps-count", text: String(section.items.length) });
     }
     if (opts.view === "table") renderTable(wrap, plugin, section.items, opts);
-    else if (opts.view === "list") renderList(wrap, plugin, section.items, opts);
+    else if (opts.view === "list") renderList(wrap, plugin, section.items);
     else renderGrid(wrap, plugin, section.items);
   }
 }
@@ -197,7 +194,7 @@ function renderTable(el: HTMLElement, plugin: ProjectsPlugin, list: ProjectInfo[
     });
     if (p.summary) name.createDiv({ cls: "ps-summary", text: p.summary });
     tr.createEl("td", { text: p.group.join(" / ") });
-    statusPill(tr.createEl("td"), plugin, p, opts.editable !== false);
+    statusText(tr.createEl("td"), plugin, p, opts.editable !== false);
     tr.createEl("td", { text: asText(p.fm["area"]) });
     tr.createEl("td", { text: asText(p.fm["category"]) });
     tr.createEl("td", { text: p.stack.join(", ") });
@@ -213,7 +210,7 @@ function renderTable(el: HTMLElement, plugin: ProjectsPlugin, list: ProjectInfo[
   }
 }
 
-function renderList(el: HTMLElement, plugin: ProjectsPlugin, list: ProjectInfo[], opts: RenderOptions): void {
+function renderList(el: HTMLElement, plugin: ProjectsPlugin, list: ProjectInfo[]): void {
   const ul = el.createEl("ul", { cls: "ps-list" });
   for (const p of list) {
     const li = ul.createEl("li");
@@ -222,8 +219,7 @@ function renderList(el: HTMLElement, plugin: ProjectsPlugin, list: ProjectInfo[]
       evt.preventDefault();
       void openProject(plugin.app, p, evt);
     });
-    li.appendText(" ");
-    statusPill(li, plugin, p, opts.editable !== false);
+    if (p.status) li.createSpan({ cls: "ps-muted", text: ` (${p.status})` });
     if (p.summary) li.createSpan({ cls: "ps-summary-inline", text: ` ${p.summary}` });
   }
 }
