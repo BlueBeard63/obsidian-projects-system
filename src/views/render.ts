@@ -4,18 +4,14 @@
 import { Keymap, Menu, Notice, setIcon, type App } from "obsidian";
 import { touchedCount, type DaySummary } from "../activity-store";
 import { dayLabel, daysBetween, isoDate, relativeDay } from "../dates";
-import { asText, isFinished, statusRank, type ProjectInfo } from "../fields";
+import { asText, isFinished, statusColour as colourFor, type ProjectInfo } from "../fields";
 import { groupProjects, type ViewKind } from "../query";
 import type ProjectsPlugin from "../main";
 
-const PALETTE = ["blue", "purple", "orange", "cyan", "yellow", "pink", "red"];
-
-/** Theme colour for a status: finished ones are green, the rest follow their position in the order. */
+/** CSS colour for a status, from the settings or the theme. */
 export function statusColour(plugin: ProjectsPlugin, status: string): string {
-  if (!status) return "base";
-  if (isFinished(status, plugin.settings.finishedStatuses)) return "green";
-  const rank = statusRank(status, plugin.index.statuses());
-  return PALETTE[rank % PALETTE.length];
+  const { finishedStatuses, statusColors } = plugin.settings;
+  return colourFor(status, plugin.index.statuses(), finishedStatuses, statusColors);
 }
 
 export async function openProject(app: App, p: ProjectInfo, evt?: MouseEvent | KeyboardEvent): Promise<void> {
@@ -114,7 +110,7 @@ function renderGrid(el: HTMLElement, plugin: ProjectsPlugin, list: ProjectInfo[]
   const today = isoDate(new Date());
   for (const p of list) {
     const card = grid.createDiv({ cls: "ps-card" });
-    card.style.setProperty("--ps-accent", `var(--color-${statusColour(plugin, p.status)}, var(--text-faint))`);
+    card.style.setProperty("--ps-accent", statusColour(plugin, p.status));
     clickable(card, plugin, p);
     const top = card.createDiv({ cls: "ps-card-top" });
     if (p.group.length) top.createSpan({ cls: "ps-group", text: p.group.join(" / ") });

@@ -1,6 +1,6 @@
 import { Notice, PluginSettingTab, Setting, normalizePath, requireApiVersion, type SettingDefinition, type SettingDefinitionItem } from "obsidian";
 import type ProjectsPlugin from "./main";
-import { DEFAULT_FIELDS, orderedStatuses, type FieldMap } from "./fields";
+import { DEFAULT_FIELDS, orderedStatuses, themeColour, type FieldMap } from "./fields";
 import type { ViewKind } from "./query";
 
 export interface ProjectsSettings {
@@ -17,6 +17,8 @@ export interface ProjectsSettings {
   statusOrder: string[];
   /** Statuses that mean "finished": these projects can be exported to the portfolio. */
   finishedStatuses: string[];
+  /** Lower-cased status -> hex colour; statuses not listed use the theme colour. */
+  statusColors: Record<string, string>;
   /** Set the main note's updated: date to today on the first edit of the day to the project. */
   bumpUpdated: boolean;
   /** No activity for this many days counts as stale. */
@@ -42,6 +44,7 @@ export const DEFAULT_SETTINGS: ProjectsSettings = {
   fields: { ...DEFAULT_FIELDS },
   statusOrder: ["idea", "planning", "in progress", "active", "paused", "done"],
   finishedStatuses: ["done"],
+  statusColors: {},
   bumpUpdated: true,
   staleDays: 30,
   detailDays: 120,
@@ -85,6 +88,17 @@ const FIELD_NAMES: [keyof FieldMap, string][] = [
   ["created", "Created date field"],
   ["updated", "Updated date field"],
 ];
+
+/** A theme colour (--color-<name>) as hex, for the colour picker's starting value. */
+function themeHex(name: string): string {
+  const style = getComputedStyle(document.body);
+  const rgb = style.getPropertyValue(`--color-${name}-rgb`).split(",").map((n) => Number(n.trim()));
+  if (name && rgb.length === 3 && rgb.every((n) => Number.isInteger(n) && n >= 0 && n <= 255)) {
+    return "#" + rgb.map((n) => n.toString(16).padStart(2, "0")).join("");
+  }
+  const raw = name ? style.getPropertyValue(`--color-${name}`).trim() : "";
+  return /^#[0-9a-f]{6}$/i.test(raw) ? raw.toLowerCase() : "#888888";
+}
 
 function wholeNumber(min: number): (n: number) => string | void {
   return (n) => {
@@ -174,6 +188,24 @@ export class ProjectsSettingTab extends PluginSettingTab {
                 name: "Finished statuses",
                 desc: "Statuses that mean a project is finished. Only these can be exported to the portfolio. One per line.",
                 control: { type: "textarea", key: "finishedStatuses", rows: 2 },
+              },
+            ],
+          },
+          {
+            type: "group",
+            heading: "Status colours",
+            items: [
+              ...orderedStatuses(found, this.plugin.settings.statusOrder).map(
+                (status): SettingDefinition => ({
+                  name: status,
+                  desc: this.plugin.settings.statusColors[status.toLowerCase()] ? "Custom colour." : "Theme colour.",
+                  control: { type: "color", key: `statusColors.${status.toLowerCase()}` },
+                }),
+              ),
+              {
+                name: "Reset colours",
+                desc: "Go back to the theme colours for every status.",
+                action: () => void this.resetColours(),
               },
             ],
           },
@@ -275,6 +307,10 @@ export class ProjectsSettingTab extends PluginSettingTab {
   override getControlValue(key: string): unknown {
     const s = this.plugin.settings;
     if (key.startsWith("fields.")) return s.fields[key.slice("fields.".length) as keyof FieldMap];
+    if (key.startsWith("statusColors.")) {
+      const status = key.slice("statusColors.".length);
+      return s.statusColors[status] ?? themeHex(themeColour(status, this.plugin.index.statuses(), s.finishedStatuses));
+    }
     switch (key) {
       case "categoryDepth":
         return String(s.categoryDepth);
@@ -297,6 +333,9 @@ export class ProjectsSettingTab extends PluginSettingTab {
     if (key.startsWith("fields.")) {
       const field = key.slice("fields.".length) as keyof FieldMap;
       s.fields[field] = text.trim() || DEFAULT_FIELDS[field];
+    } else if (key.startsWith("statusColors.")) {
+      if (!/^#[0-9a-f]{6}$/i.test(text)) return;
+      s.statusColors[key.slice("statusColors.".length)] = text.toLowerCase();
     } else {
       switch (key) {
         case "root":
@@ -343,14 +382,26 @@ export class ProjectsSettingTab extends PluginSettingTab {
     }
     await this.plugin.saveSettings();
     // Page entries show these values; update() is 1.13+.
-    if (requireApiVersion("1.13.0") && SHOWN.has(key)) this.update();
+    if (requireApiVersion("1.13.0") && (SHOWN.has(key) || key.startsWith("statusColors."))) this.update();
     // Field keys change what is read from each note, so they need a fresh index too.
     if (REINDEX.has(key) || key.startsWith("fields.")) this.plugin.index.rebuild();
     this.plugin.index.refresh();
   }
 
+  private async resetColours(): Promise<void> {
+    this.plugin.settings.statusColors = {};
+    await this.plugin.saveSettings();
+    this.plugin.index.refresh();
+    if (requireApiVersion("1.13.0")) this.update();
+    else this.redraw();
+  }
+
   /** Fallback for Obsidian before 1.13, which does not use getSettingDefinitions(): the same definitions, drawn by hand. */
   override display(): void {
+    this.redraw();
+  }
+
+  private redraw(): void {
     this.containerEl.empty();
     this.drawItems(this.getSettingDefinitions());
   }
@@ -391,6 +442,9 @@ export class ProjectsSettingTab extends PluginSettingTab {
         break;
       case "dropdown":
         setting.addDropdown((d) => d.addOptions(c.options).setValue(str).onChange((v) => this.setControlValue(c.key, v)));
+        break;
+      case "color":
+        setting.addColorPicker((p) => p.setValue(str).onChange((v) => this.setControlValue(c.key, v)));
         break;
       case "textarea":
         setting.addTextArea((t) => {

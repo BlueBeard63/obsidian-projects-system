@@ -107,6 +107,23 @@ export function isFinished(status: string, finished: string[]): boolean {
   return !!status && finished.some((s) => sameStatus(s, status));
 }
 
+const STATUS_PALETTE = ["blue", "purple", "orange", "cyan", "yellow", "pink", "red"];
+
+/** Theme colour name for a status: finished ones are green, the rest follow their position in the order. "" = none. */
+export function themeColour(status: string, order: string[], finished: string[]): string {
+  if (!status) return "";
+  if (isFinished(status, finished)) return "green";
+  return STATUS_PALETTE[statusRank(status, order) % STATUS_PALETTE.length];
+}
+
+/** CSS colour for a status: the colour set in settings (keyed lower-case), else the theme colour. */
+export function statusColour(status: string, order: string[], finished: string[], custom: Record<string, string>): string {
+  const own = custom[status.trim().toLowerCase()];
+  if (status && own) return own;
+  const name = themeColour(status, order, finished);
+  return name ? `var(--color-${name}, var(--text-faint))` : "var(--text-faint)";
+}
+
 /** The value of any field for filtering/grouping: built-ins first, then raw frontmatter keys. */
 export function fieldValues(p: ProjectInfo, key: string): string[] {
   switch (key.trim().toLowerCase()) {

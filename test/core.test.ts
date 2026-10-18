@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { daysBetween, normaliseDate, parseRange, relativeDay } from "../src/dates.ts";
 import { discoverProjects, projectForPath, type NoteEntry } from "../src/discovery.ts";
-import { asList, asText, DEFAULT_FIELDS, fieldValues, isFinished, orderedStatuses, readProject } from "../src/fields.ts";
+import { asList, asText, DEFAULT_FIELDS, fieldValues, isFinished, orderedStatuses, readProject, statusColour } from "../src/fields.ts";
 import { groupProjects, matches, parseQuery, sortProjects } from "../src/query.ts";
 
 // Fri 17 Oct 2026
@@ -154,4 +154,16 @@ test("query: parse, match, sort, group", () => {
   const groups = groupProjects([a, b, c, d], "status", order);
   assert.deepEqual(groups.map((g) => g.title), ["planning", "in progress", "done", "(none)"]);
   assert.deepEqual(groupProjects([a, b, c], "group", order).map((g) => [g.title, g.items.length]), [["A", 2], ["B", 1]]);
+});
+
+test("status colours", () => {
+  const order = ["idea", "active", "done"];
+  const finished = ["done"];
+  const custom = { active: "#ff0000" };
+  assert.equal(statusColour("Active", order, finished, custom), "#ff0000");
+  assert.equal(statusColour("idea", order, finished, custom), "var(--color-blue, var(--text-faint))");
+  assert.equal(statusColour("done", order, finished, custom), "var(--color-green, var(--text-faint))");
+  // not in the order: placed after it in the palette
+  assert.equal(statusColour("someday", order, finished, {}), "var(--color-cyan, var(--text-faint))");
+  assert.equal(statusColour("", order, finished, custom), "var(--text-faint)");
 });
