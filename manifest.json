@@ -1,7 +1,7 @@
 {
   "id": "projects-system",
   "name": "Projects System",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "minAppVersion": "1.7.2",
   "description": "Track the projects you already keep as notes: grid, table and activity views, query blocks, automatic activity history and export to a portfolio.",
   "author": "Jack Morrison",
