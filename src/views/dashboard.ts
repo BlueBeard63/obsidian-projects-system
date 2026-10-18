@@ -3,6 +3,7 @@ import { daysBetween, isoDate, parseRange } from "../dates";
 import { isFinished, type ProjectInfo } from "../fields";
 import { emptyQuery, matches, sortProjects, type ViewKind } from "../query";
 import type ProjectsPlugin from "../main";
+import { NewProjectModal } from "../modals/new-project";
 import { renderActivity, renderProjects } from "./render";
 
 export const DASHBOARD_VIEW = "projects-dashboard";
@@ -135,6 +136,7 @@ export class DashboardView extends ItemView {
     }
     const count = tabs.createDiv({ cls: "ps-total" });
     count.setText(`${this.filtered().length} / ${index.projects.length} projects`);
+    this.newProjectButton(tabs);
 
     const row = el.createDiv({ cls: "ps-filters" });
     const search = row.createEl("input", { cls: "ps-search", type: "search", placeholder: "Search projects" });
@@ -193,6 +195,13 @@ export class DashboardView extends ItemView {
     }
   }
 
+  private newProjectButton(parent: HTMLElement): void {
+    const b = parent.createEl("button", { cls: "mod-cta ps-new" });
+    setIcon(b.createSpan(), "plus");
+    b.createSpan({ text: "New project" });
+    b.addEventListener("click", () => new NewProjectModal(this.plugin).open());
+  }
+
   /** Projects after the toolbar filters, sorted. */
   private filtered(): ProjectInfo[] {
     const { state, plugin } = this;
@@ -230,7 +239,8 @@ export class DashboardView extends ItemView {
     if (!plugin.index.projects.length) {
       const empty = el.createDiv({ cls: "ps-empty" });
       empty.createDiv({ text: `No projects found under "${plugin.settings.root || "/"}".` });
-      empty.createDiv({ cls: "ps-muted", text: "Check the projects folder and category levels in the plugin settings." });
+      empty.createDiv({ cls: "ps-muted", text: "Check the projects folder and category levels in the plugin settings, or start one." });
+      this.newProjectButton(empty);
       return;
     }
     if (state.tab === "activity") {

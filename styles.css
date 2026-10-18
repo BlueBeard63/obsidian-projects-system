@@ -45,6 +45,21 @@
   font-size: var(--font-ui-small);
 }
 
+.ps-new {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-1);
+}
+
+.ps-new .svg-icon {
+  width: var(--icon-s);
+  height: var(--icon-s);
+}
+
+.ps-empty .ps-new {
+  margin-top: var(--size-4-3);
+}
+
 .ps-filters {
   display: flex;
   flex-wrap: wrap;
