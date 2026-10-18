@@ -511,3 +511,9 @@
 .ps-diff-del { color: var(--color-red); }
 .ps-diff-ctx { color: var(--text-muted); }
 .ps-diff-gap { color: var(--text-faint); }
+
+/* settings on Obsidian before 1.13: group headings inside a page */
+.ps-subheading .setting-item-name {
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+}

@@ -1,4 +1,4 @@
-import { Notice, PluginSettingTab, Setting, normalizePath, type SettingDefinition, type SettingDefinitionItem } from "obsidian";
+import { Notice, PluginSettingTab, Setting, normalizePath, requireApiVersion, type SettingDefinition, type SettingDefinitionItem } from "obsidian";
 import type ProjectsPlugin from "./main";
 import { DEFAULT_FIELDS, orderedStatuses, type FieldMap } from "./fields";
 import type { ViewKind } from "./query";
@@ -72,6 +72,11 @@ function parseMap(v: string): Record<string, string> {
 /** Settings that change which notes are projects; saving them rebuilds the index. */
 const REINDEX = new Set(["root", "categoryDepth", "projectTag", "ignore"]);
 
+/** Settings shown on a page's entry (displayValue), so changing them redraws the tab. */
+const SHOWN = new Set(["root", "statusOrder", "staleDays", "defaultView", "portfolioPath"]);
+
+const VIEW_NAMES: Record<ViewKind, string> = { grid: "Grid", table: "Table", list: "List" };
+
 const FIELD_NAMES: [keyof FieldMap, string][] = [
   ["status", "Status field"],
   ["summary", "Summary field"],
@@ -104,124 +109,163 @@ export class ProjectsSettingTab extends PluginSettingTab {
     const found = this.plugin.index.foundStatuses();
     return [
       {
-        type: "group",
-        heading: "Where your projects are",
+        type: "page",
+        name: "Projects",
+        desc: "Where your projects are and which frontmatter fields they use.",
+        displayValue: () => this.plugin.settings.root || "Whole vault",
         items: [
           {
-            name: "Projects folder",
-            desc: "The folder that holds your category folders. Leave empty for the whole vault.",
-            control: { type: "folder", key: "root", includeRoot: true },
+            type: "group",
+            heading: "Where your projects are",
+            items: [
+              {
+                name: "Projects folder",
+                desc: "The folder that holds your category folders. Leave empty for the whole vault.",
+                control: { type: "folder", key: "root", includeRoot: true },
+              },
+              {
+                name: "Category levels",
+                desc: "How many folder levels under the projects folder are categories. 1 means a project sits in a category folder; 0 means projects sit directly in the projects folder.",
+                control: { type: "dropdown", key: "categoryDepth", options: { "0": "0", "1": "1", "2": "2", "3": "3" } },
+              },
+              {
+                name: "Project tag",
+                desc: "A note with this tag is a project wherever it sits under the projects folder. Leave empty to rely on folders only.",
+                control: { type: "text", key: "projectTag" },
+              },
+              {
+                name: "Ignored folders",
+                desc: "Folder names or paths (relative to the projects folder) to skip, one per line.",
+                control: { type: "textarea", key: "ignore", rows: 3 },
+              },
+            ],
           },
           {
-            name: "Category levels",
-            desc: "How many folder levels under the projects folder are categories. 1 means a project sits in a category folder; 0 means projects sit directly in the projects folder.",
-            control: { type: "dropdown", key: "categoryDepth", options: { "0": "0", "1": "1", "2": "2", "3": "3" } },
-          },
-          {
-            name: "Project tag",
-            desc: "A note with this tag is a project wherever it sits under the projects folder. Leave empty to rely on folders only.",
-            control: { type: "text", key: "projectTag" },
-          },
-          {
-            name: "Ignored folders",
-            desc: "Folder names or paths (relative to the projects folder) to skip, one per line.",
-            control: { type: "textarea", key: "ignore", rows: 3 },
+            type: "group",
+            heading: "Frontmatter fields",
+            items: FIELD_NAMES.map(
+              ([key, name]): SettingDefinition => ({
+                name,
+                desc: `The frontmatter key that holds this field (default: ${DEFAULT_FIELDS[key]}).`,
+                control: { type: "text", key: `fields.${key}` },
+              }),
+            ),
           },
         ],
       },
       {
-        type: "group",
-        heading: "Frontmatter fields",
-        items: FIELD_NAMES.map(
-          ([key, name]): SettingDefinition => ({
-            name,
-            desc: `The frontmatter key that holds this field (default: ${DEFAULT_FIELDS[key]}).`,
-            control: { type: "text", key: `fields.${key}` },
-          }),
-        ),
-      },
-      {
-        type: "group",
-        heading: "Statuses",
+        type: "page",
+        name: "Statuses",
+        desc: "The order of your status words and which ones mean finished.",
+        displayValue: () => {
+          const n = orderedStatuses(this.plugin.index.foundStatuses(), this.plugin.settings.statusOrder).length;
+          return `${n} ${n === 1 ? "status" : "statuses"}`;
+        },
         items: [
           {
-            name: "Status order",
-            desc: `Your status words in the order they sort and appear in the status menu, one per line. Found in your notes: ${found.length ? found.join(", ") : "none yet"}.`,
-            control: { type: "textarea", key: "statusOrder", rows: 7 },
-          },
-          {
-            name: "Finished statuses",
-            desc: "Statuses that mean a project is finished. Only these can be exported to the portfolio. One per line.",
-            control: { type: "textarea", key: "finishedStatuses", rows: 2 },
+            type: "group",
+            items: [
+              {
+                name: "Status order",
+                desc: `Your status words in the order they sort and appear in the status menu, one per line. Found in your notes: ${found.length ? found.join(", ") : "none yet"}.`,
+                control: { type: "textarea", key: "statusOrder", rows: 7 },
+              },
+              {
+                name: "Finished statuses",
+                desc: "Statuses that mean a project is finished. Only these can be exported to the portfolio. One per line.",
+                control: { type: "textarea", key: "finishedStatuses", rows: 2 },
+              },
+            ],
           },
         ],
       },
       {
-        type: "group",
-        heading: "Activity",
+        type: "page",
+        name: "Activity",
+        desc: "Edit history, stale projects and the updated date.",
+        displayValue: () => `Stale after ${this.plugin.settings.staleDays} days`,
         items: [
           {
-            name: "Keep updated date current",
-            desc: "When you edit any note in a project, set the main note's updated date to today (at most once a day, and only if the note already has that field).",
-            control: { type: "toggle", key: "bumpUpdated" },
-          },
-          {
-            name: "Stale after (days)",
-            desc: "Projects with no activity for this long show as stale.",
-            control: { type: "number", key: "staleDays", min: 1, step: 1, validate: wholeNumber(1) },
-          },
-          {
-            name: "Detailed history (days)",
-            desc: "Which notes you edited is kept this long. Older edits are kept as a count per day.",
-            control: { type: "number", key: "detailDays", min: 1, step: 1, validate: wholeNumber(1) },
-          },
-          {
-            name: "Rebuild history from file dates",
-            desc: "Seeds activity from each file's created and modified dates. Existing history is kept.",
-            action: () => {
-              void this.plugin.activity.backfill(true).then((n) => new Notice(`Added ${n} activity events from file dates.`));
-            },
+            type: "group",
+            items: [
+              {
+                name: "Keep updated date current",
+                desc: "When you edit any note in a project, set the main note's updated date to today (at most once a day, and only if the note already has that field).",
+                control: { type: "toggle", key: "bumpUpdated" },
+              },
+              {
+                name: "Stale after (days)",
+                desc: "Projects with no activity for this long show as stale.",
+                control: { type: "number", key: "staleDays", min: 1, step: 1, validate: wholeNumber(1) },
+              },
+              {
+                name: "Detailed history (days)",
+                desc: "Which notes you edited is kept this long. Older edits are kept as a count per day.",
+                control: { type: "number", key: "detailDays", min: 1, step: 1, validate: wholeNumber(1) },
+              },
+              {
+                name: "Rebuild history from file dates",
+                desc: "Seeds activity from each file's created and modified dates. Existing history is kept.",
+                action: () => {
+                  void this.plugin.activity.backfill(true).then((n) => new Notice(`Added ${n} activity events from file dates.`));
+                },
+              },
+            ],
           },
         ],
       },
       {
-        type: "group",
-        heading: "Views",
+        type: "page",
+        name: "Views",
+        desc: "How the dashboard opens and the template for new projects.",
+        displayValue: () => VIEW_NAMES[this.plugin.settings.defaultView],
         items: [
           {
-            name: "Default view",
-            control: { type: "dropdown", key: "defaultView", options: { grid: "Grid", table: "Table", list: "List" } },
-          },
-          {
-            name: "Group the dashboard by",
-            desc: "A field such as status, group, area or category. Leave empty for no sections.",
-            control: { type: "text", key: "defaultGroupBy" },
-          },
-          {
-            name: "New project template",
-            desc: "A note to copy for new projects ({{name}}, {{date}}, {{status}} and {{summary}} are filled in). Leave empty for the built-in one.",
-            control: { type: "file", key: "templatePath", filter: (f) => f.extension === "md" },
+            type: "group",
+            items: [
+              {
+                name: "Default view",
+                control: { type: "dropdown", key: "defaultView", options: VIEW_NAMES },
+              },
+              {
+                name: "Group the dashboard by",
+                desc: "A field such as status, group, area or category. Leave empty for no sections.",
+                control: { type: "text", key: "defaultGroupBy" },
+              },
+              {
+                name: "New project template",
+                desc: "A note to copy for new projects ({{name}}, {{date}}, {{status}} and {{summary}} are filled in). Leave empty for the built-in one.",
+                control: { type: "file", key: "templatePath", filter: (f) => f.extension === "md" },
+              },
+            ],
           },
         ],
       },
       {
-        type: "group",
-        heading: "Portfolio",
+        type: "page",
+        name: "Portfolio",
+        desc: "Exporting finished projects to your portfolio site.",
+        displayValue: () => this.plugin.settings.portfolioPath || "Not set",
         items: [
           {
-            name: "Portfolio content folder",
-            desc: "Absolute path on disk to the portfolio's content folder, the one with the projects, writing and assets folders. Desktop only.",
-            control: { type: "text", key: "portfolioPath" },
-          },
-          {
-            name: "Role",
-            desc: "Written to role: on exported projects.",
-            control: { type: "text", key: "portfolioRole" },
-          },
-          {
-            name: "Status on the portfolio",
-            desc: 'Map your status words to the portfolio\'s, one per line, e.g. "done = released". Unlisted statuses are copied as they are.',
-            control: { type: "textarea", key: "portfolioStatusMap", rows: 3 },
+            type: "group",
+            items: [
+              {
+                name: "Portfolio content folder",
+                desc: "Absolute path on disk to the portfolio's content folder, the one with the projects, writing and assets folders. Desktop only.",
+                control: { type: "text", key: "portfolioPath" },
+              },
+              {
+                name: "Role",
+                desc: "Written to role: on exported projects.",
+                control: { type: "text", key: "portfolioRole" },
+              },
+              {
+                name: "Status on the portfolio",
+                desc: 'Map your status words to the portfolio\'s, one per line, e.g. "done = released". Unlisted statuses are copied as they are.',
+                control: { type: "textarea", key: "portfolioStatusMap", rows: 3 },
+              },
+            ],
           },
         ],
       },
@@ -298,6 +342,8 @@ export class ProjectsSettingTab extends PluginSettingTab {
       }
     }
     await this.plugin.saveSettings();
+    // Page entries show these values; update() is 1.13+.
+    if (requireApiVersion("1.13.0") && SHOWN.has(key)) this.update();
     // Field keys change what is read from each note, so they need a fresh index too.
     if (REINDEX.has(key) || key.startsWith("fields.")) this.plugin.index.rebuild();
     this.plugin.index.refresh();
@@ -306,11 +352,23 @@ export class ProjectsSettingTab extends PluginSettingTab {
   /** Fallback for Obsidian before 1.13, which does not use getSettingDefinitions(): the same definitions, drawn by hand. */
   override display(): void {
     this.containerEl.empty();
-    for (const item of this.getSettingDefinitions()) {
-      if (!("type" in item) || item.type !== "group") continue;
-      if (item.heading) new Setting(this.containerEl).setName(item.heading).setHeading();
-      for (const def of item.items ?? []) {
-        if (!("type" in def)) this.drawClassic(def);
+    this.drawItems(this.getSettingDefinitions());
+  }
+
+  /** Pages and groups become headings, so older Obsidian shows one page in the same sections. */
+  private drawItems(items: SettingDefinitionItem[]): void {
+    for (const item of items) {
+      if (!("type" in item)) {
+        this.drawClassic(item);
+      } else if (item.type === "page") {
+        const heading = new Setting(this.containerEl).setName(item.name).setHeading();
+        if (typeof item.desc === "string") heading.setDesc(item.desc);
+        this.drawItems(item.items ?? []);
+      } else if (item.type === "group") {
+        if (item.heading) new Setting(this.containerEl).setName(item.heading).setHeading().settingEl.addClass("ps-subheading");
+        for (const def of item.items ?? []) {
+          if (!("type" in def)) this.drawClassic(def);
+        }
       }
     }
   }
